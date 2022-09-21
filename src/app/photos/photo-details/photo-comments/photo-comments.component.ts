@@ -1,13 +1,15 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ActivatedRoute } from "@angular/router";
 import { Observable } from "rxjs";
+import { switchMap, tap } from "rxjs/operators";
+
 import { PhotoComment } from "../../photo/photo-comment";
 import { PhotoService } from "../../photo/photo.service";
 
 @Component({
     selector: 'ap-photo-comments',
-    templateUrl: './photo-comments.component.html'
+    templateUrl: './photo-comments.component.html',
+    styleUrls: ['photo-comments.css']
 })
 export class PhotoCommentsComponent implements OnInit {
     @Input() photoId: number;
@@ -29,11 +31,11 @@ export class PhotoCommentsComponent implements OnInit {
 
     save() {
         const comment = this.commentForm.get('comment').value as string;
-        this.photoService
+        this.comments$ = this.photoService
             .addComment(this.photoId, comment)
-            .subscribe(() => {
+            .pipe(switchMap(() => this.photoService.getComments(this.photoId)))   
+            .pipe(tap(() => {
                 this.commentForm.reset();
-                alert('Comentário adicionado com sucesso');
-            });
+            }));
     }
 }
